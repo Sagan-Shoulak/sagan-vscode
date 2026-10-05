@@ -3,8 +3,32 @@ name: VS Code Extension
 on:
   push:
     branches: [dev, main]
+    paths:
+      - ".github/workflows/vscode-extension.yml"
+      - "src/**"
+      - "tests/**"
+      - "syntaxes/**"
+      - "scripts/**"
+      - "examples/**"
+      - "images/**"
+      - "package.json"
+      - "package-lock.json"
+      - "sagan-source-commit.txt"
+      - "*language-configuration.json"
   pull_request:
     branches: [dev, main]
+    paths:
+      - ".github/workflows/vscode-extension.yml"
+      - "src/**"
+      - "tests/**"
+      - "syntaxes/**"
+      - "scripts/**"
+      - "examples/**"
+      - "images/**"
+      - "package.json"
+      - "package-lock.json"
+      - "sagan-source-commit.txt"
+      - "*language-configuration.json"
   workflow_dispatch:
 
 permissions:
