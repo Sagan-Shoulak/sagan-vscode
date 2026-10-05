@@ -1,6 +1,6 @@
 ---
 title: VS Code extension roadmap
-status: work-in-progress
+status: review-needed
 publication_ready: false
 verified_in: null
 verified_on: null
@@ -13,6 +13,9 @@ Version 0.3.6 is a usable language client for the capabilities currently
 advertised by `sagan-lsp`. This roadmap lists work that remains after the
 initial client integration. The extension must continue to consume compiler
 contracts rather than reproduce parsing, semantics, project rules, or catalogs.
+This independent-repository draft has a pinned-source CI workflow; its
+Linux, macOS, and Windows jobs still need to run in the destination repository
+before that extraction is ready.
 
 ## Current compiler handoff checkpoint
 
@@ -69,11 +72,11 @@ for continued local extension development:
   automated Windows integration path is now verified; platform-specific visual
   behavior, including file-icon theme interaction, and features outside its
   representative request set remain.
-- Observe the first hosted run of the automated Extension Development Host
-  integration suite after the relevant commits are pushed. Keep it passing on
-  each supported CI platform. The dedicated workflow builds the matching
+- Observe the first **independent-repository** hosted run of the automated
+  Extension Development Host integration suite. Keep it passing on each
+  supported CI platform. The draft dedicated workflow builds the matching
   compiler and server and runs unit, bundle, and live-host tests on Windows,
-  Linux, and macOS; its first hosted run remains to be observed. The suite
+  Linux, and macOS; that independent hosted run remains to be observed. The suite
   covers real activation, diagnostics, hover, definition, completion,
   signature help, symbols, and formatting without making ordinary unit tests
   network-dependent. A clean

@@ -1,6 +1,6 @@
 ---
 title: Editor support
-status: work-in-progress
+status: review-needed
 publication_ready: false
 verified_in: null
 verified_on: null
@@ -34,22 +34,28 @@ Alternatively, install the downloaded asset from Bash:
 code --install-extension sagan-language-VERSION.vsix
 ```
 
-## Build and install from a repository clone
+## Build and install from an extension repository clone
 
-Use this route when working with Sagan's experimental branch:
+Use this route when working with an extension development branch. Build or
+install a matching Sagan compiler and language server separately:
 
 ```bash
-cd editors/vscode-sagan
+git clone https://github.com/Sagan-Shoulak/sagan-vscode.git
+cd sagan-vscode
 npm ci
 npm test
 npm run test:bundle
+export SAGAN_COMPILER_PATH=/absolute/path/to/sagan
+export SAGAN_LSP_PATH=/absolute/path/to/sagan-lsp
 npm run test:integration
 npm run package
 code --install-extension sagan-language-*.vsix
 ```
 
-The repository's extension version is currently 0.3.6. Its version is
-independent of the compiler version.
+On Windows, use the `.exe` paths. The extension version is independent of
+the compiler version; `sagan-source-commit.txt` records the exact compiler
+revision initially tested by independent extension CI. Releases remain
+paused pending the owner's publication decision.
 
 ## Verify the installation
 
@@ -67,16 +73,16 @@ independent of the compiler version.
 7. If discovery fails, set `sagan.compiler.path` and `sagan.server.path` to the
    matching executables. Relevant setting changes restart the server automatically.
 
-See [Testing Sagan programs](../tooling/testing-sagan-programs.md) for test
+See [Testing Sagan programs](https://sagan.shoulak.org/experimental/tooling/testing-sagan-programs/) for test
 syntax, suites, document versus project runs, selection, output, cancellation,
 and the current absence of a public terminal test command.
 
-The extension locates the compiler and [language server](../tooling/language-server.md),
+The extension locates the compiler and [language server](https://sagan.shoulak.org/experimental/tooling/language-server/),
 then enables only the capabilities advertised during LSP initialization.
 TextMate coloring remains lexical and is not proof that code parses or
 type-checks. The VSIX does not embed the native language-server executable; a
 matching Sagan installation must provide `sagan-lsp` on `PATH`, beside the
-configured compiler, in the repository `bin` directory, or through
+configured compiler, in the active Sagan project's `bin` directory, or through
 `sagan.server.path`.
 
 Package names and imported symbols already have some compiler-backed
@@ -87,7 +93,7 @@ experimental adapter has not passed its release and capability gates.
 ## Troubleshooting
 
 - If code has changed locally but diagnostics still describe old syntax, rebuild
-  `bin/sagan` and `bin/sagan-lsp` from the checkout. Then run **Sagan: Restart
+  `bin/sagan` and `bin/sagan-lsp` from the Sagan source checkout. Then run **Sagan: Restart
   Language Server** or **Developer: Reload Window**. Reinstalling the VSIX
   alone does not replace the native server. On Windows, close VS Code before
   rebuilding if its running `sagan-lsp.exe` prevents replacement.
@@ -106,11 +112,12 @@ experimental adapter has not passed its release and capability gates.
 
 ## Development-host testing
 
-Open `editors/vscode-sagan/` in VS Code, press `F5`, and choose **Run Sagan
+Open this extension repository in VS Code, press `F5`, and choose **Run Sagan
 Extension** if prompted. The Extension Development Host opens the bundled
 demonstration file. This is intended for extension development, not ordinary
 installation.
 
 The opt-in `npm run test:integration` command downloads or reuses a supported
-VS Code test runtime and requires a built `bin/sagan-lsp` (or an explicit
-`SAGAN_LSP_PATH`). Ordinary `npm test` remains offline and deterministic.
+VS Code test runtime and requires explicit `SAGAN_COMPILER_PATH` and
+`SAGAN_LSP_PATH` pointing to compatible native executables. Ordinary
+`npm test` remains offline and deterministic.

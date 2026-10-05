@@ -1,6 +1,6 @@
 ---
 title: Editor feature readiness
-status: work-in-progress
+status: review-needed
 publication_ready: false
 verified_in: null
 verified_on: null
@@ -12,6 +12,9 @@ verified_by: null
 The extension project should use this checklist rather than infer readiness
 from compiler version numbers. “Blocked” means the authoritative shared service
 contract is not yet implemented; the extension must not reproduce it.
+Compiler-side implementation and protocol evidence belong in
+[the official language-server documentation](https://sagan.shoulak.org/experimental/tooling/language-server/);
+this page tracks the extension's consumer obligations.
 
 **Handoff status:** the Phase 9 server reliability gate has passed on Windows.
 The extension chat can now wire up the LSP features advertised by `initialize`

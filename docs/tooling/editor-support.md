@@ -1,6 +1,6 @@
 ---
 title: Editor support
-status: work-in-progress
+status: review-needed
 publication_ready: false
 verified_in: null
 verified_on: null
@@ -8,7 +8,7 @@ verified_by: null
 ---
 
 # Editor support
-The version 0.3.6 VS Code extension in `editors/vscode-sagan/` associates
+The VS Code extension in this repository associates
 `.sagan` files with the language and provides a tokenizer-aligned Sagan TextMate
 grammar. It covers declarations (including explicit `const` and visibly invalid
 `let ALL_CAPS` names), keywords, types, literals, operators, punctuation,
@@ -24,7 +24,7 @@ exposes **Sagan: Show Tooling Status** and **Sagan: Restart Language Server**.
 TextMate remains lexical and cannot resolve whether braces are blocks or
 dictionaries, or whether angle brackets are vectors or comparisons.
 
-The extension connects to the standalone [language server](language-server.md)
+The extension connects to the standalone [language server](https://sagan.shoulak.org/experimental/tooling/language-server/)
 with VS Code's standard language client. Diagnostics, hover, completion,
 signature help, navigation, symbols, semantic tokens, folding, selection
 ranges, links, inlay hints, safe edits, formatting, and type/call hierarchies
@@ -41,7 +41,7 @@ installation.
 Compiler-owned editor infrastructure is separate from the extension. Source
 snapshots, diagnostics, recovering syntax, overlays, semantic identities,
 position queries, and LSP transport are available. Track the [editor feature readiness checklist](extension-readiness.md)
-and [language-server capability contract](language-server-capabilities.md).
+and [language-server capability contract](https://sagan.shoulak.org/experimental/tooling/language-server-capabilities/).
 The extension must not duplicate Sagan parsing, semantics, project rules, or
 standard-library metadata.
 
