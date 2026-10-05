@@ -15,7 +15,10 @@ UCRT64 make/GCC on Windows. VS Code or a downloadable VS Code test runtime
 is needed for live-host tests. Do not copy native binaries into this
 extension package.
 
-In a Bash shell from this repository root, obtain the exact native source:
+The workflow checks out the full history at the exact native source pin;
+Sagan calculates its compiler version from a baseline commit, so a shallow
+source checkout can build an incorrectly identified toolchain. In a Bash
+shell from this repository root, obtain the exact native source:
 
 ```bash
 git clone https://github.com/Sagan-Shoulak/sagan.git ../sagan-source
