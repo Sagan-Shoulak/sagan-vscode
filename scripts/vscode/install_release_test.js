@@ -7,7 +7,7 @@ const { spawnSync } = require("node:child_process");
 const {
   downloadAndUnzipVSCode,
   resolveCliArgsFromVSCodeExecutablePath
-} = require("../../editors/vscode-sagan/node_modules/@vscode/test-electron");
+} = require("../../node_modules/@vscode/test-electron");
 
 async function main() {
   const [vsixArgument, expectedVersion] = process.argv.slice(2);

@@ -22,16 +22,13 @@ function verifyPackagedDemo(extensionDevelopmentPath, compilerPath) {
 
 async function main() {
   const extensionDevelopmentPath = path.resolve(__dirname, "..", "..");
-  const repositoryRoot = path.resolve(extensionDevelopmentPath, "..", "..");
-  const serverName = process.platform === "win32" ? "sagan-lsp.exe" : "sagan-lsp";
-  const compilerName = process.platform === "win32" ? "sagan.exe" : "sagan";
-  const serverPath = process.env.SAGAN_LSP_PATH || path.join(repositoryRoot, "bin", serverName);
-  const compilerPath = process.env.SAGAN_COMPILER_PATH || path.join(repositoryRoot, "bin", compilerName);
-  if (!fs.existsSync(serverPath)) {
-    throw new Error(`Build the language server first or set SAGAN_LSP_PATH: ${serverPath}`);
+  const serverPath = process.env.SAGAN_LSP_PATH;
+  const compilerPath = process.env.SAGAN_COMPILER_PATH;
+  if (!serverPath || !fs.existsSync(serverPath)) {
+    throw new Error(`Set SAGAN_LSP_PATH to an existing language-server executable: ${serverPath || "<unset>"}`);
   }
-  if (!fs.existsSync(compilerPath)) {
-    throw new Error(`Build the compiler first or set SAGAN_COMPILER_PATH: ${compilerPath}`);
+  if (!compilerPath || !fs.existsSync(compilerPath)) {
+    throw new Error(`Set SAGAN_COMPILER_PATH to an existing compiler executable: ${compilerPath || "<unset>"}`);
   }
 
   verifyPackagedDemo(extensionDevelopmentPath, compilerPath);

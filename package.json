@@ -7,8 +7,7 @@
   "icon": "images/sagan-logo.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Sagan-Shoulak/sagan.git",
-    "directory": "editors/vscode-sagan"
+    "url": "https://github.com/Sagan-Shoulak/sagan-vscode.git"
   },
   "engines": {
     "vscode": "^1.85.0"

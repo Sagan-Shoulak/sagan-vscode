@@ -2,12 +2,13 @@
 set -euo pipefail
 
 extension_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-repository_root="$(cd "$extension_root/../.." && pwd)"
 extension_version="$(node -p "require('$extension_root/package.json').version")"
 output_path="${1:-$extension_root/sagan-language-$extension_version.vsix}"
 
-cd "$repository_root"
-make all bin/sagan-lsp
+: "${SAGAN_COMPILER_PATH:?Set SAGAN_COMPILER_PATH to the matching Sagan compiler}"
+: "${SAGAN_LSP_PATH:?Set SAGAN_LSP_PATH to the matching Sagan language server}"
+[[ -x "$SAGAN_COMPILER_PATH" ]] || { echo "Compiler is not executable: $SAGAN_COMPILER_PATH" >&2; exit 1; }
+[[ -x "$SAGAN_LSP_PATH" ]] || { echo "Language server is not executable: $SAGAN_LSP_PATH" >&2; exit 1; }
 
 cd "$extension_root"
 npm ci

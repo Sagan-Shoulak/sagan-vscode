@@ -88,15 +88,16 @@ suggestions and some navigation and hover support. Complete package completion
 and automatic import edits are still in development. The compiler also has an
 experimental debug adapter, but it is not packaged or advertised as a
 supported debugger; this extension does not offer a Sagan debug configuration
-yet. The [extension roadmap](../../docs/tooling/vscode-extension-roadmap.md)
+yet. The [extension roadmap](docs/tooling/vscode-extension-roadmap.md)
 tracks those gates.
 
 ## Local development
 
-1. Build the repository with `make all bin/sagan-lsp` so both the compiler and
-   language server are available.
-2. Run `npm ci` and `npm run build` in `editors/vscode-sagan`.
-3. Open the Sagan repository in VS Code.
+1. Build the compiler and language server from the
+   [pinned Sagan source commit](sagan-source-commit.txt), or install matching
+   binaries separately.
+2. Run `npm ci` and `npm run build` in this repository.
+3. Open this extension repository in VS Code.
 4. Press `F5` and choose **Run Sagan Extension** if prompted.
 5. The Extension Development Host opens `examples/demo.sagan` from this extension.
 6. Confirm the status bar identifies the file as **Sagan** and the Sagan output channel reports that the language server started.
@@ -105,26 +106,27 @@ TextMate grammar or bundled-client changes require rebuilding and restarting the
 
 ## Test
 
-Install the pinned development dependencies and run the grammar against focused fixtures plus the repository's comprehensive parser demo:
+Install the pinned development dependencies and run the extension-owned fixtures:
 
 ```bash
 npm ci
 npm test
 npm run test:bundle
+export SAGAN_COMPILER_PATH=/absolute/path/to/sagan
+export SAGAN_LSP_PATH=/absolute/path/to/sagan-lsp
 npm run test:integration
 ```
 
-The tests use VS Code's TextMate and Oniguruma engines to verify syntax scopes and mocked lifecycle tests to verify server discovery, client startup, command registration, and shutdown. `npm run test:bundle` additionally builds and checks the packaged entry point. The opt-in integration test launches a real VS Code Extension Development Host against a built `bin/sagan-lsp`; set `SAGAN_LSP_PATH` to use another compatible server.
+The tests use VS Code's TextMate and Oniguruma engines to verify syntax scopes and mocked lifecycle tests to verify server discovery, client startup, command registration, and shutdown. `npm run test:bundle` additionally builds and checks the packaged entry point. The opt-in integration test launches a real VS Code Extension Development Host and requires explicit paths to a matching compiler and language server.
 
 The integration test also validates `examples/demo.sagan` with the matching
-compiler and requires it to be diagnostic-free. Set `SAGAN_COMPILER_PATH` when
-testing against a compiler outside the repository's `bin` directory.
+compiler and requires it to be diagnostic-free.
 
-On Linux, run the complete clean-build, test, integration, and packaging gate
-from the repository with:
+On Linux, after setting both native-tool paths, run the extension's complete
+test, integration, and packaging gate with:
 
 ```bash
-bash editors/vscode-sagan/scripts/linux-acceptance.sh
+bash scripts/linux-acceptance.sh
 ```
 
 Pass an output path as the first argument to choose where the VSIX is written.
@@ -144,7 +146,7 @@ The resulting `.vsix` can be installed from VS Code's Extensions view or with th
 Official Sagan releases attach the compatible VSIX and its SHA-256 checksum to
 the GitHub Release. The same files are available from the HP1 download mirror.
 The extension is not currently published to the Visual Studio Marketplace.
-The repository [VS Code extension roadmap](../../docs/tooling/vscode-extension-roadmap.md) records remaining release validation and compiler-blocked features.
+The [VS Code extension roadmap](docs/tooling/vscode-extension-roadmap.md) records remaining release validation and compiler-blocked features.
 
 ## Grammar limits
 

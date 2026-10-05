@@ -5,79 +5,68 @@ on:
     branches: [dev, main]
   pull_request:
     branches: [dev, main]
-    paths:
-      - ".github/workflows/vscode-extension.yml"
-      - "editors/vscode-sagan/**"
-      - "makefile"
-      - "scripts/version.sh"
-      - "src/**"
-      - "third_party/uni-algo/**"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  linux:
-    name: Linux extension host
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+  extension-host:
+    name: ${{ matrix.name }} extension host
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            runner: ubuntu-latest
+            compiler: sagan
+            server: sagan-lsp
+          - name: macOS
+            runner: macos-latest
+            compiler: sagan
+            server: sagan-lsp
+          - name: Windows
+            runner: windows-latest
+            compiler: sagan.exe
+            server: sagan-lsp.exe
+    env:
+      SAGAN_COMPILER_PATH: ${{ github.workspace }}/sagan-source/bin/${{ matrix.compiler }}
+      SAGAN_LSP_PATH: ${{ github.workspace }}/sagan-source/bin/${{ matrix.server }}
     steps:
-      - name: Check out repository
+      - name: Check out extension
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          path: extension
+          persist-credentials: false
+      - name: Resolve pinned compiler source
+        id: source
+        shell: bash
+        working-directory: extension
+        run: echo "sha=$(cat sagan-source-commit.txt)" >> "$GITHUB_OUTPUT"
+      - name: Check out pinned Sagan compiler source
+        uses: actions/checkout@v7
+        with:
+          repository: Sagan-Shoulak/sagan
+          ref: ${{ steps.source.outputs.sha }}
+          path: sagan-source
+          persist-credentials: false
+      - name: Verify compiler source pin
+        shell: bash
+        working-directory: sagan-source
+        env:
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Install virtual display support
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --yes xvfb
-      - name: Build compiler and language server
-        run: make all bin/sagan-lsp
-      - name: Install extension dependencies
-        working-directory: editors/vscode-sagan
-        run: npm ci
-      - name: Run extension unit tests
-        working-directory: editors/vscode-sagan
-        run: npm test
-      - name: Verify extension bundle
-        working-directory: editors/vscode-sagan
-        run: npm run test:bundle
-      - name: Run Extension Development Host integration
-        working-directory: editors/vscode-sagan
-        run: xvfb-run --auto-servernum npm run test:integration
-
-  macos:
-    name: macOS extension host
-    runs-on: macos-latest
-    timeout-minutes: 30
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Build compiler and language server
-        run: make CXX=clang++ all bin/sagan-lsp
-      - name: Install extension dependencies
-        working-directory: editors/vscode-sagan
-        run: npm ci
-      - name: Run extension unit tests
-        working-directory: editors/vscode-sagan
-        run: npm test
-      - name: Verify extension bundle
-        working-directory: editors/vscode-sagan
-        run: npm run test:bundle
-      - name: Run Extension Development Host integration
-        working-directory: editors/vscode-sagan
-        run: npm run test:integration
-
-  windows:
-    name: Windows extension host
-    runs-on: windows-latest
-    timeout-minutes: 30
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
       - name: Set up MSYS2 UCRT64
+        if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
@@ -87,26 +76,33 @@ jobs:
             make
             mingw-w64-ucrt-x86_64-binutils
             mingw-w64-ucrt-x86_64-gcc
-      - name: Build compiler and language server
+      - name: Build compiler and language server on Windows
+        if: runner.os == 'Windows'
         shell: msys2 {0}
+        working-directory: sagan-source
         run: make all bin/sagan-lsp
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+      - name: Build compiler and language server on macOS
+        if: runner.os == 'macOS'
+        working-directory: sagan-source
+        run: make CXX=clang++ all bin/sagan-lsp
+      - name: Build compiler and language server on Linux
+        if: runner.os == 'Linux'
+        working-directory: sagan-source
+        run: make all bin/sagan-lsp
       - name: Install extension dependencies
-        shell: bash
-        working-directory: editors/vscode-sagan
+        working-directory: extension
         run: npm ci
       - name: Run extension unit tests
-        shell: bash
-        working-directory: editors/vscode-sagan
+        working-directory: extension
         run: npm test
       - name: Verify extension bundle
-        shell: bash
-        working-directory: editors/vscode-sagan
+        working-directory: extension
         run: npm run test:bundle
       - name: Run Extension Development Host integration
-        shell: bash
-        working-directory: editors/vscode-sagan
+        if: runner.os != 'Linux'
+        working-directory: extension
         run: npm run test:integration
+      - name: Run Extension Development Host integration on Linux
+        if: runner.os == 'Linux'
+        working-directory: extension
+        run: xvfb-run --auto-servernum npm run test:integration
