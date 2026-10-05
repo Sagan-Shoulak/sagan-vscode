@@ -15,6 +15,11 @@ UCRT64 make/GCC on Windows. VS Code or a downloadable VS Code test runtime
 is needed for live-host tests. Do not copy native binaries into this
 extension package.
 
+The exact-lock workspace calls `scripts/workspace-build.sh` (`npm ci` and
+bundle build) and `scripts/workspace-test.sh` (unit and bundle checks).
+The independent extension CI additionally exercises the live VS Code host
+with its pinned compiler/LSP on Linux, macOS, and Windows.
+
 The workflow checks out the full history at the exact native source pin;
 Sagan calculates its compiler version from a baseline commit, so a shallow
 source checkout can build an incorrectly identified toolchain. In a Bash
