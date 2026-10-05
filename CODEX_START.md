@@ -4,9 +4,9 @@ Begin read-only. Read `AGENTS.md`, `TECHNOLOGY.md`,
 `MAINTAINERS.md`, `README.md`, `sagan-source-commit.txt`, the
 extension roadmap and documentation status fields. Inspect branch, HEAD,
 status, staged paths, recent history, and the actual compiler/LSP version
-and paths. While the workspace repository does not yet exist, use
-`Sagan-Shoulak/sagan`'s `repository-segmentation/ecosystem.toml` and
-`chat-map.toml` as the canonical organization map. Report open gates,
+and paths. The workspace repository exists but its component lock is not
+fully active; compare its versioned ecosystem/chat maps with the primary
+repository's maps. Report open gates,
 concurrent work, platform support, exact Bash commands, and the safest
 next step before changing state.
 
@@ -34,3 +34,17 @@ Releases and `main` promotion are currently paused. Do not push,
 publish, release, deploy, transfer, or change remote settings without
 current permission. Preserve unrelated work. Give Bash, never
 PowerShell, commands.
+
+This tracked prompt is a one-time bootstrap. After reading it and orienting
+read-only, delete `CODEX_START.md` on a short-lived branch, commit that
+deletion and any required contract updates, then open a PR into `dev` linked
+to an onboarding issue. Do not
+recreate it; `AGENTS.md`, `TECHNOLOGY.md`, and `MAINTAINERS.md` remain the
+durable instructions.
+
+Use existing or new GitHub issues for substantive work, PRs into `dev` for
+review, and the organization Project for cross-repo milestones when access
+permits. Link each PR to its issue, record focused checks, compiler/LSP pins,
+and integration impact, and update Project status. If Project access is
+unavailable, record that in the issue and continue safe local verification.
+The split is tracked by Sagan-Shoulak/sagan#6.
