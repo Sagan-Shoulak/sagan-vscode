@@ -11,6 +11,8 @@ const extensionRoot = path.dirname(path.resolve(manifestPath));
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 assert.equal(manifest.version, expectedVersion, "VSIX manifest version does not match its filename");
 assert.equal(manifest.main, "./dist/extension.js", "VSIX manifest has an unexpected entry point");
+assert(!fs.existsSync(path.join(extensionRoot, "build")),
+  "VSIX included generated build output");
 
 for (const relative of [
   "dist/extension.js",
