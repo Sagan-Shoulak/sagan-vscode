@@ -81,6 +81,12 @@ async function main() {
   assert.equal(typeof configurationListener, "function");
   assert(outputLines.some((line) => line.includes("language server started")));
 
+  await commands.get("sagan.showToolingStatus")();
+  assert(outputLines.includes("Configured compiler: automatic discovery"));
+  assert(outputLines.includes(`Configured language server: ${process.execPath}`));
+  assert(outputLines.some((line) => line.includes("No compatible Sagan compiler was found.")));
+  assert(outputLines.some((line) => line.includes("sagan.language-service/1")));
+
   configurationListener({ affectsConfiguration: (name) => name === "sagan.server.trace" });
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(FakeLanguageClient.instances.length, 2);

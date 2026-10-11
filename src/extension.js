@@ -3,7 +3,8 @@
 const vscode = require("vscode");
 const { LanguageClient, RevealOutputChannelOn } = require("vscode-languageclient/node");
 const {
-  capabilityNames, discoverCompiler, executableCandidates, selectServerExecutable, serverExecutableCandidates
+  capabilityNames, capabilitySummaryLines, discoverCompiler, executableCandidates, selectServerExecutable,
+  serverExecutableCandidates
 } = require("./capabilities");
 const { registerOperations } = require("./operations");
 const { registerTesting } = require("./testing");
@@ -32,11 +33,15 @@ async function inspectTooling(output) {
   output.appendLine("Sagan tooling discovery");
   const configuration = vscode.workspace.getConfiguration("sagan");
   const configuredCompiler = configuration.get("compiler.path", "");
+  const configuredServer = configuration.get("server.path", "");
+  output.appendLine(`Configured compiler: ${configuredCompiler || "automatic discovery"}`);
+  output.appendLine(`Configured language server: ${configuredServer || "automatic discovery"}`);
   const result = await discoverCompiler(executableCandidates(configuredCompiler, workspacePaths()));
 
   for (const failure of result.failures) output.appendLine(`Skipped ${failure}`);
   if (!result.executable) {
     output.appendLine("No compatible Sagan compiler was found.");
+    output.appendLine("Set sagan.compiler.path to a compiler that advertises sagan.language-service/1.");
     output.show(true);
     void vscode.window.showWarningMessage("No compatible Sagan compiler was found. Configure sagan.compiler.path.");
     return;
@@ -46,7 +51,12 @@ async function inspectTooling(output) {
   output.appendLine(`Compiler: ${result.executable}`);
   output.appendLine(`Schema: ${result.capabilities.schema}`);
   output.appendLine(`Available capabilities: ${available.join(", ") || "none"}`);
-  output.appendLine(`Language server: ${serverForWorkspace() || "not found"}`);
+  for (const line of capabilitySummaryLines(result.capabilities.capabilities)) output.appendLine(line);
+  const server = serverForWorkspace();
+  output.appendLine(`Language server: ${server || "not found"}`);
+  if (!server) {
+    output.appendLine("Install sagan-lsp beside the compiler or set sagan.server.path explicitly.");
+  }
   output.show(true);
   void vscode.window.showInformationMessage(`Sagan tooling found (${available.length} capabilities).`);
 }

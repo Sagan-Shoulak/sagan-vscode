@@ -3,6 +3,7 @@
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const {
+  capabilitySummaryLines,
   capabilityNames,
   discoverCompiler,
   executableOnPath,
@@ -34,6 +35,37 @@ async function main() {
   assert.equal(parsed.capabilities.debugLaunchPlan, true);
   assert.equal(parsed.capabilities.packageCompletion, false);
   assert.equal(parsed.capabilities.debugAdapter, false);
+
+  const summary = capabilitySummaryLines(parseCapabilities(response({
+    nativeCheck: true,
+    nativeBuild: true,
+    operationTransport: true,
+    operationCancellation: true,
+    testDocumentDiscovery: true,
+    testDocumentRun: true,
+    packageIndexReader: true,
+    packageQuery: true,
+    packageCatalog: true,
+    sourceMaps: true,
+    debugMetadata: true,
+    debugLaunchPlan: true
+  })).capabilities);
+  assert(summary.includes("Operations: check, build, transport, cancellation"));
+  assert(summary.includes("Test Explorer transport: document discovery, document run"));
+  assert(summary.includes("Package foundations: index reader, query, catalog"));
+  assert(summary.includes("Complete package features: unavailable (compiler did not advertise completion, navigation, or auto-import)"));
+  assert(summary.includes("Debug foundations: source maps, metadata, launch plan"));
+  assert(summary.includes("Debugger features: unavailable (compiler did not advertise live debugger support)"));
+
+  const partialSummary = capabilitySummaryLines(parseCapabilities(response({
+    packageCompletion: true,
+    debugAdapter: true,
+    debugLaunch: true
+  })).capabilities);
+  assert(partialSummary.some((line) =>
+    line.includes("Complete package features: completion; unavailable: navigation, auto-import")));
+  assert(partialSummary.some((line) =>
+    line.includes("Debugger features: adapter, launch; unavailable: attach, breakpoints")));
 
   const legacy = JSON.parse(response());
   delete legacy.capabilities.packageCatalog;
