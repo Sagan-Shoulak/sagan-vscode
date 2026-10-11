@@ -90,7 +90,9 @@ for continued local extension development:
 - Run a manual VS Code smoke-test matrix on Windows, Linux, and macOS covering
   activation, diagnostics, completion, hover, navigation, signature help,
   semantic tokens, formatting, rename, code actions, and hierarchies. The
-  automated Windows integration path is now verified; platform-specific visual
+  reproducible procedure and evidence template live in
+  [`../testing/manual-editor-smoke-test.md`](../testing/manual-editor-smoke-test.md).
+  The automated Windows integration path is now verified; platform-specific visual
   behavior, including file-icon theme interaction, and features outside its
   representative request set remain.
 - Keep the **independent-repository** automated Extension Development Host
