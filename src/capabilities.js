@@ -49,6 +49,63 @@ const capabilityNames = [
 
 const requiredCapabilityNames = capabilityNames.slice(0, 8);
 
+function capabilitySummaryLines(capabilities) {
+  const enabledLabels = (entries) => entries
+    .filter(([name]) => capabilities[name])
+    .map(([, label]) => label);
+  const describe = (entries) => enabledLabels(entries).join(", ") || "unavailable";
+  const describeGranular = (entries, unavailableMessage) => {
+    const enabled = enabledLabels(entries);
+    const unavailable = entries.filter(([name]) => !capabilities[name]).map(([, label]) => label);
+    if (!enabled.length) return `unavailable (${unavailableMessage})`;
+    if (!unavailable.length) return enabled.join(", ");
+    return `${enabled.join(", ")}; unavailable: ${unavailable.join(", ")}`;
+  };
+
+  const packageFoundations = describe([
+    ["packageIndexReader", "index reader"],
+    ["packageQuery", "query"],
+    ["packageCatalog", "catalog"]
+  ]);
+  const packageFeatures = describeGranular([
+    ["packageCompletion", "completion"],
+    ["packageNavigation", "navigation"],
+    ["packageAutoImport", "auto-import"]
+  ], "compiler did not advertise completion, navigation, or auto-import");
+  const debugFoundations = describe([
+    ["sourceMaps", "source maps"],
+    ["debugMetadata", "metadata"],
+    ["debugLaunchPlan", "launch plan"]
+  ]);
+  const debugFeatures = describeGranular([
+    ["debugAdapter", "adapter"],
+    ["debugLaunch", "launch"],
+    ["debugAttach", "attach"],
+    ["debugBreakpoints", "breakpoints"],
+    ["debugStepping", "stepping"],
+    ["debugVariables", "variables"],
+    ["debugEvaluate", "evaluate"],
+    ["debugExceptions", "exceptions"]
+  ], "compiler did not advertise live debugger support");
+
+  return [
+    `Operations: ${describe([
+      ["nativeCheck", "check"], ["nativeBuild", "build"], ["nativeRun", "run"],
+      ["operationTransport", "transport"], ["operationCancellation", "cancellation"]
+    ])}`,
+    `Test Explorer transport: ${describe([
+      ["testDocumentDiscovery", "document discovery"],
+      ["testProjectDiscovery", "project discovery"],
+      ["testDocumentRun", "document run"],
+      ["testProjectRun", "project run"]
+    ])}`,
+    `Package foundations: ${packageFoundations}`,
+    `Complete package features: ${packageFeatures}`,
+    `Debug foundations: ${debugFoundations}`,
+    `Debugger features: ${debugFeatures}`
+  ];
+}
+
 function validateCapabilities(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error("Capability response must be a JSON object.");
@@ -178,6 +235,7 @@ async function discoverCompiler(candidates, probe = runCapabilities) {
 }
 
 module.exports = {
+  capabilitySummaryLines,
   capabilityNames,
   discoverCompiler,
   executableOnPath,

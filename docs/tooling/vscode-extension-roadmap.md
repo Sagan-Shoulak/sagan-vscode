@@ -13,9 +13,30 @@ Version 0.3.6 is a usable language client for the capabilities currently
 advertised by `sagan-lsp`. This roadmap lists work that remains after the
 initial client integration. The extension must continue to consume compiler
 contracts rather than reproduce parsing, semantics, project rules, or catalogs.
-This independent-repository draft has a pinned-source CI workflow; its
-Linux, macOS, and Windows jobs still need to run in the destination repository
-before that extraction is ready.
+The independent repository has a pinned-source CI workflow whose Linux, macOS,
+and Windows jobs pass in the destination repository.
+
+## Accepted capability matrix
+
+The extension accepts the running compiler and language server's versioned
+capability response as authoritative. The current completion boundary is:
+
+| Capability group | Current contract | Extension action |
+| --- | --- | --- |
+| Standard LSP editor features | Advertised by `sagan-lsp` | Consume through `vscode-languageclient`; do not duplicate providers. |
+| Check/build/run | Native operations and cancellation advertised | Commands and tasks implemented. |
+| Test Explorer | Granular document/project discovery and run advertised | Test Explorer implemented from the granular flags. |
+| Manifest editing | Diagnostics, completion, hover, symbols, navigation, and document/range formatting advertised | Consume the LSP surface; on-type formatting and safe fixes remain unavailable. |
+| Package foundations | Index reader, query, and catalog advertised | Treat as compiler foundations; do not crawl packages in JavaScript. |
+| Complete package UX | Completion, navigation, and auto-import flags false | Wait for the compiler/LSP contract and tests. |
+| Debug foundations | Source maps, metadata, and launch planning advertised | Treat as metadata only. |
+| Debugger UI | All live DAP capability flags false | Do not register a Sagan debug type yet. |
+
+The ordered extension plan is to improve capability/status presentation first,
+expand representative live-editor acceptance coverage second, consume package
+features only as their individual flags become true, and add debugger UI only
+after the granular DAP flags and release-payload gates pass. Stable publication
+and `main` promotion remain separate decisions.
 
 ## Current compiler handoff checkpoint
 
@@ -72,11 +93,11 @@ for continued local extension development:
   automated Windows integration path is now verified; platform-specific visual
   behavior, including file-icon theme interaction, and features outside its
   representative request set remain.
-- Observe the first **independent-repository** hosted run of the automated
-  Extension Development Host integration suite. Keep it passing on each
-  supported CI platform. The draft dedicated workflow builds the matching
+- Keep the **independent-repository** automated Extension Development Host
+  integration suite passing on each supported CI platform. The dedicated
+  workflow builds the matching
   compiler and server and runs unit, bundle, and live-host tests on Windows,
-  Linux, and macOS; that independent hosted run remains to be observed. The suite
+  Linux, and macOS; those hosted jobs have passed. The suite
   covers real activation, diagnostics, hover, definition, completion,
   signature help, symbols, and formatting without making ordinary unit tests
   network-dependent. A clean
@@ -118,8 +139,8 @@ for continued local extension development:
   manifest document selector. Live-host coverage exercises diagnostics,
   completion, hover, symbols, entry navigation, and valid whole-document
   formatting. The compiler also owns locked-dependency navigation and
-  installed-package requirement completion. Manifest range/on-type formatting
-  and safe quick fixes remain unavailable; extend tests as those capabilities
+  installed-package requirement completion. Manifest on-type formatting and
+  safe quick fixes remain unavailable; extend tests as those capabilities
   become supported. The extension must not reproduce manifest parsing or
   validation in TypeScript.
 - Finish package completion in every relevant import, export, qualified-name,
@@ -135,8 +156,8 @@ for continued local extension development:
   stop-on-entry, and source-level
   stepping. Windows portable packaging now contains GDB, its Python runtime,
   and the adapter, and an extracted ZIP passed the DAP suite outside MSYS2.
-  Initialized scalar locals and parameters have a guarded value probe, while
-  collections, strings, nested values, exception stops, broader source-context
+  Initialized scalar and UTF-8 String locals and parameters have guarded value
+  probes, while collections, nested values, exception stops, broader source-context
   and cleanup coverage, Linux distribution validation, and isolated installer
   smoke validation remain. The extension must not register a supported
   Sagan debug type while all granular debugger capability flags remain false.
