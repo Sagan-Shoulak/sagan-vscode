@@ -381,9 +381,10 @@ async function run() {
         label: item.label, detail: item.detail,
         additionalTextEdits: item.additionalTextEdits && item.additionalTextEdits.length
       })))}`);
+  const packageLineEnding = packageMain.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
   assert(autoImportAnswer.textEdit.newText === "orbit_answer" &&
          autoImportAnswer.additionalTextEdits.some((edit) =>
-           edit.newText === "import orbit_answer from orbit_tools.main\n"),
+           edit.newText === `import orbit_answer from orbit_tools.main${packageLineEnding}`),
   "language-client conversion changed the compiler-issued package auto-import edits");
   const autoImportEdit = new vscode.WorkspaceEdit();
   for (const edit of autoImportAnswer.additionalTextEdits) {
