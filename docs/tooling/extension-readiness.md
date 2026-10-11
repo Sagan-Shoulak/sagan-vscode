@@ -30,7 +30,7 @@ below are deliberate limits, not work for the extension to invent locally.
 | Implementations/conformances | Face/class conformance index | **LSP available** |
 | References/highlights | Identity-based workspace reference index | **LSP available** |
 | Signature help | Resolved overload/signature query | **LSP available; ambiguous incomplete calls remain conservative** |
-| Completion | Parser context, semantic scope/type state, module/catalog metadata | **LSP available for compiler-known candidates; installed imports and unfinished module-path imports work, but full external-package completion/auto-import is blocked** |
+| Completion | Parser context, semantic scope/type state, module/catalog metadata | **LSP available, including installed-package modules/exports/members and compiler-issued safe auto-import edits** |
 | `sagan.toml` editing | Compiler-owned manifest parser over versioned overlays | **Unsaved-buffer diagnostics, section/key, application-mode, and installed-dependency-key completion, section/key hover and outline, entry/dependency navigation, and conservative document/range formatting available; on-type formatting and safe fixes remain blocked** |
 | Semantic highlighting | Stable classification vocabulary and ranges | **Full-document LSP semantic tokens available** |
 | Document symbols | Hierarchical declaration index | **LSP available** |
@@ -65,25 +65,13 @@ The remaining compiler-side milestones, in dependency order, are:
    selection, cancellation, stale runs, and LSP framing have focused tests.
    The extension consumes stable IDs and project runs through Test Explorer.
    A public terminal runner and debug-test profile remain unavailable.
-3. Complete contextual package completion and navigation. Manifest dependency
-   aliases, exact lockfile verification, offline installed-package linking,
-   transitive imports, and navigation/hover for imported package symbols now
-   work. The compiler also supplies module-path candidates and bounded
-   selective-export candidates for incomplete imports, plus definition targets
-   for module paths and definition/hover targets for selective import names.
-   Export/member completion in every context, safe import edits,
-   missing-source documentation targets, and multi-root collision behavior
-   still need implementation and focused tests. No unfinished package
-   capability is advertised.
-   Imported package-owned value members now have a focused library and LSP
-   completion regression, including callable signatures; that is one tested
-   slice, not the complete package-completion capability.
-   Proven auto-import edits now accept exported overload sets and list their
-   distinct signatures; this still does not cover every completion context.
-   `sagan.toml` entry-module values now navigate to existing local source
-   modules from the active manifest snapshot. Locked dependency aliases and
-   inline-table package names navigate to installed manifests. Dependency
-   value completion and safe manifest edits remain open.
+3. **Package UX completed:** contextual module/export/member completion,
+   installed-source navigation, safe auto-import edits, aliases, collisions,
+   overlays, UTF-16 positions, and multi-root boundaries have compiler and LSP
+   coverage. The extension consumes the three advertised capabilities through
+   `vscode-languageclient` and real Extension Host tests; it owns no package
+   parsing or catalog logic. Manifest safe fixes remain a separate unavailable
+   capability.
 4. Finish the experimental Windows DAP executable using GDB native DAP,
    source maps, and debug metadata. It already has a live launch/breakpoint/
    stack and step-over/in/out probes; verify all source contexts, Sagan scopes

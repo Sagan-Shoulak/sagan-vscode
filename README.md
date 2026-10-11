@@ -83,9 +83,9 @@ cannot refresh stale semantic diagnostics. Use **Sagan: Show Tooling Status** to
 check the executable paths, then restart the server or reload the editor after
 rebuilding. On Windows, close VS Code before replacing an in-use server binary.
 
-Installed packages and locked dependencies already have compiler-backed import
-suggestions and some navigation and hover support. Complete package completion
-and automatic import edits are still in development. The compiler also has an
+Installed packages and locked dependencies have compiler-backed contextual
+completion, navigation, hover, and safe automatic import edits through the
+standard language-server providers. The compiler also has an
 experimental debug adapter, but it is not packaged or advertised as a
 supported debugger; this extension does not offer a Sagan debug configuration
 yet. The [extension roadmap](docs/tooling/vscode-extension-roadmap.md)

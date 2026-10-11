@@ -1,0 +1,8 @@
+module main
+import orbit_answer from orbit_tools.main
+import OrbitProbe from orbit_tools.main
+
+fun package_answer(): Int {
+  let probe = OrbitProbe()
+  return orbit_answer() + probe.sample(0)
+}

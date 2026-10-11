@@ -85,8 +85,10 @@ matching Sagan installation must provide `sagan-lsp` on `PATH`, beside the
 configured compiler, in the active Sagan project's `bin` directory, or through
 `sagan.server.path`.
 
-Package names and imported symbols already have some compiler-backed
-completion and navigation. Full package auto-import is still being built.
+Package names, modules, exports, qualified members, and imported symbols have
+compiler-backed completion and navigation. Proven unbound exports can also
+carry safe automatic import edits; VS Code applies the binding and import as
+one completion operation.
 Debugging is not available through the extension yet: the compiler's
 experimental adapter has not passed its release and capability gates.
 

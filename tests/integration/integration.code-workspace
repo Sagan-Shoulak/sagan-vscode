@@ -1,0 +1,6 @@
+{
+  "folders": [
+    { "name": "extension-integration", "path": "workspace" },
+    { "name": "package-project", "path": "package-workspace" }
+  ]
+}

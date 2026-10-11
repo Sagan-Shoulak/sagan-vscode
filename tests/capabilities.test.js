@@ -67,6 +67,17 @@ async function main() {
   assert(partialSummary.some((line) =>
     line.includes("Debugger features: adapter, launch; unavailable: attach, breakpoints")));
 
+  const completePackageSummary = capabilitySummaryLines(parseCapabilities(response({
+    packageIndexReader: true,
+    packageQuery: true,
+    packageCatalog: true,
+    packageCompletion: true,
+    packageNavigation: true,
+    packageAutoImport: true
+  })).capabilities);
+  assert(completePackageSummary.includes("Package foundations: index reader, query, catalog"));
+  assert(completePackageSummary.includes("Complete package features: completion, navigation, auto-import"));
+
   const legacy = JSON.parse(response());
   delete legacy.capabilities.packageCatalog;
   delete legacy.capabilities.debugLaunchPlan;

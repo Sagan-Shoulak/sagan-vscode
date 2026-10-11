@@ -313,6 +313,88 @@ async function run() {
   assert(supertypes && supertypes.some((item) => item.name === "Readable"),
     "type hierarchy did not preserve the Probe-to-Readable relationship");
 
+  const packageWorkspace = vscode.workspace.workspaceFolders.find(
+    (folder) => folder.name === "package-project");
+  assert(packageWorkspace, "package-project workspace folder was not initialized");
+  const packageMain = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(
+    packageWorkspace.uri, "src", "main.sagan"));
+  await vscode.window.showTextDocument(packageMain);
+  const packageCallLine = packageMain.lineAt(6).text;
+  const packageCallPosition = new vscode.Position(6, packageCallLine.indexOf("orbit_answer") + 2);
+  const packageDefinitions = await waitFor(
+    () => vscode.commands.executeCommand(
+      "vscode.executeDefinitionProvider", packageMain.uri, packageCallPosition)
+      .then((items) => items && items.length ? items : undefined),
+    "installed-package definition");
+  assert(packageDefinitions.some((location) =>
+    location.uri.fsPath.replaceAll("\\", "/").endsWith(
+      "tests/integration/packages/orbit-tools/src/main.sagan")),
+  "package navigation did not reach the installed package source");
+  const packageMemberPosition = new vscode.Position(
+    6, packageCallLine.indexOf("probe.sample") + "probe.".length + 2);
+  const packageMembers = await vscode.commands.executeCommand(
+    "vscode.executeCompletionItemProvider", packageMain.uri, packageMemberPosition, ".");
+  assert(packageMembers && packageMembers.items.some((item) =>
+    item.label === "sample" && String(item.detail).includes("(value: Int): Int")),
+  "package completion did not expose the installed receiver member signature");
+
+  const moduleCompletion = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(
+    packageWorkspace.uri, "src", "module_completion.sagan"));
+  const moduleLine = moduleCompletion.lineAt(1).text;
+  const packageModules = await vscode.commands.executeCommand(
+    "vscode.executeCompletionItemProvider", moduleCompletion.uri,
+    new vscode.Position(1, moduleLine.length));
+  assert(packageModules && packageModules.items.some((item) => item.label === "orbit_tools.main"),
+    "package module completion omitted the installed dependency module");
+
+  const selectiveCompletion = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(
+    packageWorkspace.uri, "src", "selective_completion.sagan"));
+  const selectiveLine = selectiveCompletion.lineAt(1).text;
+  const packageExports = await vscode.commands.executeCommand(
+    "vscode.executeCompletionItemProvider", selectiveCompletion.uri,
+    new vscode.Position(1, selectiveLine.indexOf(" from")));
+  assert(packageExports && packageExports.items.some((item) => item.label === "orbit_answer"),
+    "package selective-import completion omitted the installed export");
+
+  const autoImportSource = [
+    "module main",
+    "import orbit_tools.main as package_tools",
+    "fun probe(): Int { return 0 }",
+    ""
+  ].join("\n");
+  const autoImportFixture = new vscode.WorkspaceEdit();
+  autoImportFixture.replace(packageMain.uri,
+    new vscode.Range(packageMain.positionAt(0), packageMain.positionAt(packageMain.getText().length)),
+    autoImportSource);
+  assert(await vscode.workspace.applyEdit(autoImportFixture),
+    "could not create the package entry-overlay auto-import fixture");
+  await vscode.window.showTextDocument(packageMain);
+  const autoImportLine = packageMain.lineAt(2).text;
+  const autoImports = await vscode.commands.executeCommand(
+    "vscode.executeCompletionItemProvider", packageMain.uri,
+    new vscode.Position(2, autoImportLine.indexOf("{") + 2));
+  const autoImportAnswer = autoImports && autoImports.items.find((item) =>
+    item.label === "orbit_answer" && item.additionalTextEdits && item.additionalTextEdits.length);
+  assert(autoImportAnswer && autoImportAnswer.textEdit,
+    `package auto-import completion omitted its primary or additional edit: ${JSON.stringify(
+      autoImports && autoImports.items.map((item) => ({
+        label: item.label, detail: item.detail,
+        additionalTextEdits: item.additionalTextEdits && item.additionalTextEdits.length
+      })))}`);
+  const packageLineEnding = packageMain.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+  assert(autoImportAnswer.textEdit.newText === "orbit_answer" &&
+         autoImportAnswer.additionalTextEdits.some((edit) =>
+           edit.newText === `import orbit_answer from orbit_tools.main${packageLineEnding}`),
+  "language-client conversion changed the compiler-issued package auto-import edits");
+  const autoImportEdit = new vscode.WorkspaceEdit();
+  for (const edit of autoImportAnswer.additionalTextEdits) {
+    autoImportEdit.replace(packageMain.uri, edit.range, edit.newText);
+  }
+  assert(await vscode.workspace.applyEdit(autoImportEdit),
+    "VS Code could not apply the package auto-import completion edits");
+  assert(packageMain.getText().includes("import orbit_answer from orbit_tools.main"),
+    "VS Code did not apply the compiler-issued package import edit");
+
   const aliasMain = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(
     vscode.workspace.workspaceFolders[0].uri, "alias_rename", "main.sagan"));
   const aliasOwner = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(
