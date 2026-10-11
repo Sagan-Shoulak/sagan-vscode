@@ -28,20 +28,20 @@ capability response as authoritative. The current completion boundary is:
 | Test Explorer | Granular document/project discovery and run advertised | Test Explorer implemented from the granular flags. |
 | Manifest editing | Diagnostics, completion, hover, symbols, navigation, and document/range formatting advertised | Consume the LSP surface; on-type formatting and safe fixes remain unavailable. |
 | Package foundations | Index reader, query, and catalog advertised | Treat as compiler foundations; do not crawl packages in JavaScript. |
-| Complete package UX | Completion, navigation, and auto-import flags false | Wait for the compiler/LSP contract and tests. |
+| Complete package UX | Completion, navigation, and auto-import advertised | Consume through standard completion/navigation providers; VS Code applies compiler-issued additional import edits. |
 | Debug foundations | Source maps, metadata, and launch planning advertised | Treat as metadata only. |
 | Debugger UI | All live DAP capability flags false | Do not register a Sagan debug type yet. |
 
 The ordered extension plan is to improve capability/status presentation first,
-expand representative live-editor acceptance coverage second, consume package
-features only as their individual flags become true, and add debugger UI only
+expand representative live-editor acceptance coverage second, keep complete
+package UX covered through the real language client, and add debugger UI only
 after the granular DAP flags and release-payload gates pass. Stable publication
 and `main` promotion remain separate decisions.
 
 ## Current compiler handoff checkpoint
 
 Extension work can consume standard LSP improvements as they land while the
-compiler-side package and debugger contracts below are completed. The earlier
+compiler-side debugger contract below is completed. The earlier
 1.8.0 checkpoint is historical, not the present handoff. The extension must
 not enable capabilities that discovery still reports as false.
 
@@ -53,10 +53,10 @@ manifest aliases and `sagan.lock` is also available. Imported package symbols
 have tested hover, definition, and completion paths, and incomplete selective
 and module imports have compiler-owned suggestions and navigation.
 
-Reaching the next extension handoff requires several focused compiler-side
-increments followed by a release-payload validation pass. The preferred order
-is package completion and safe auto-import first, then debugger values and
-runtime-failure mapping, then debugger packaging and cross-platform validation.
+Package completion, navigation, and safe auto-import now pass compiler protocol
+tests and real Extension Development Host acceptance. The next compiler handoff
+is debugger values and runtime-failure mapping, followed by debugger packaging
+and cross-platform validation.
 
 ## Dependable F2 rename
 
@@ -145,14 +145,6 @@ for continued local extension development:
   safe quick fixes remain unavailable; extend tests as those capabilities
   become supported. The extension must not reproduce manifest parsing or
   validation in TypeScript.
-- Finish package completion in every relevant import, export, qualified-name,
-  type, expression, and receiver context. Add compiler-owned safe auto-import
-  edits, alias and collision handling, navigation when installed source is
-  missing, and focused multi-root conflict tests. Existing lockfile resolution,
-  selective-import navigation, catalog queries, and tested package hover,
-  definition, and completion cases are foundations rather than the completed
-  contract. Keep `packageCompletion`, `packageNavigation`, and
-  `packageAutoImport` false until their individual end-to-end gates pass.
 - Finish the experimental Debug Adapter Protocol implementation. `sagan-dap`
   can launch programs and exercise breakpoints, mapped stacks, source-mapped
   stop-on-entry, and source-level
@@ -169,15 +161,12 @@ for continued local extension development:
 When compiler work resumes, complete and advertise each capability separately
 rather than waiting for one large final patch:
 
-1. Complete contextual package completion and its protocol tests.
-2. Complete safe package auto-import edits, aliases, and multi-root conflicts.
-3. Complete missing-source package navigation behavior.
-4. Complete Sagan debugger values and runtime-failure/exception mapping.
-5. Expand DAP source-context, cancellation, termination, and cleanup tests.
-6. Package the debugger backend and validate Windows outside MSYS2 plus Linux.
-7. Hand the tested schemas, executable-discovery contract, capability truth
+1. Complete Sagan debugger values and runtime-failure/exception mapping.
+2. Expand DAP source-context, cancellation, termination, and cleanup tests.
+3. Package the debugger backend and validate Windows outside MSYS2 plus Linux.
+4. Hand the tested schemas, executable-discovery contract, capability truth
    table, runtime dependencies, and validation results back to the extension.
-8. Register only the newly advertised VS Code features, rebuild the VSIX, and
+5. Register only the newly advertised VS Code features, rebuild the VSIX, and
    rerun unit, bundle, isolated-install, activation, and live-host tests.
 
 ## Deliberate non-goals

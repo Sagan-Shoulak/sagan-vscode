@@ -24,11 +24,15 @@ async function main() {
   const extensionDevelopmentPath = path.resolve(__dirname, "..", "..");
   const serverPath = process.env.SAGAN_LSP_PATH;
   const compilerPath = process.env.SAGAN_COMPILER_PATH;
+  const packageIndexPath = path.join(__dirname, "packages", "index.tsv");
   if (!serverPath || !fs.existsSync(serverPath)) {
     throw new Error(`Set SAGAN_LSP_PATH to an existing language-server executable: ${serverPath || "<unset>"}`);
   }
   if (!compilerPath || !fs.existsSync(compilerPath)) {
     throw new Error(`Set SAGAN_COMPILER_PATH to an existing compiler executable: ${compilerPath || "<unset>"}`);
+  }
+  if (!fs.existsSync(packageIndexPath)) {
+    throw new Error(`Missing integration package index: ${packageIndexPath}`);
   }
 
   verifyPackagedDemo(extensionDevelopmentPath, compilerPath);
@@ -36,8 +40,11 @@ async function main() {
   await runTests({
     extensionDevelopmentPath,
     extensionTestsPath: path.join(__dirname, "suite.js"),
-    launchArgs: [path.join(__dirname, "workspace"), "--disable-extensions"],
-    extensionTestsEnv: { SAGAN_LSP_PATH: serverPath },
+    launchArgs: [path.join(__dirname, "integration.code-workspace"), "--disable-extensions"],
+    extensionTestsEnv: {
+      SAGAN_LSP_PATH: serverPath,
+      SAGAN_PACKAGE_INDEX: packageIndexPath
+    },
     version: process.env.VSCODE_TEST_VERSION || "stable"
   });
 }

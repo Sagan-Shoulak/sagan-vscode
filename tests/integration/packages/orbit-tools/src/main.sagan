@@ -1,0 +1,11 @@
+module main
+
+/// Return the package-owned answer.
+fun orbit_answer(): Int => 42
+export orbit_answer
+
+/// Advance a package-owned probe value.
+class OrbitProbe {
+  fun sample(value: Int): Int => value + 1
+}
+export OrbitProbe
