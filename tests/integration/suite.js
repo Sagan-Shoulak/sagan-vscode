@@ -79,6 +79,21 @@ async function run() {
     "vscode.executeFoldingRangeProvider", document.uri);
   assert(foldingRanges && foldingRanges.length > 0, "folding provider returned no ranges");
 
+  const inlayHints = await vscode.commands.executeCommand(
+    "vscode.executeInlayHintProvider", document.uri,
+    new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)));
+  assert(inlayHints && inlayHints.some((hint) => String(hint.label).includes("Int")),
+    "inlay hint provider did not describe the inferred local binding type");
+
+  const callItems = await vscode.commands.executeCommand(
+    "vscode.prepareCallHierarchy", document.uri, callPosition);
+  assert(callItems && callItems.length === 1,
+    "call hierarchy preparation did not resolve the called function");
+  const incomingCalls = await vscode.commands.executeCommand(
+    "vscode.provideIncomingCalls", callItems[0]);
+  assert(incomingCalls && incomingCalls.some((call) => call.from.name === "main"),
+    "call hierarchy did not connect main to the called function");
+
   const selectionRanges = await vscode.commands.executeCommand(
     "vscode.executeSelectionRangeProvider", document.uri, [callPosition]);
   assert(selectionRanges && selectionRanges.length === 1,
@@ -93,6 +108,23 @@ async function run() {
     "vscode.executeFormatDocumentProvider", document.uri, { tabSize: 2, insertSpaces: true });
   assert(Array.isArray(edits) && edits.length > 0, "format provider did not return the expected indentation edit");
 
+  const rangeEdits = await vscode.commands.executeCommand(
+    "vscode.executeFormatRangeProvider", document.uri,
+    new vscode.Range(new vscode.Position(1, 0), new vscode.Position(4, 12)),
+    { tabSize: 2, insertSpaces: true });
+  assert(Array.isArray(rangeEdits) && rangeEdits.length > 0,
+    "range format provider did not return the expected indentation edit");
+
+  const onTypeDocument = await vscode.workspace.openTextDocument({
+    language: "sagan",
+    content: "fun format_me(): Int {\n  return 0\n    }\n"
+  });
+  const onTypeEdits = await vscode.commands.executeCommand(
+    "_executeFormatOnTypeProvider", onTypeDocument.uri, new vscode.Position(2, 5), "}",
+    { tabSize: 2, insertSpaces: true });
+  assert(Array.isArray(onTypeEdits) && onTypeEdits.length > 0,
+    "on-type format provider did not correct the closing-brace indentation");
+
   const originalText = document.getText();
   const invalidEdit = new vscode.WorkspaceEdit();
   invalidEdit.insert(document.uri, document.positionAt(originalText.length), "\nlet broken = missing\n");
@@ -106,6 +138,27 @@ async function run() {
   assert(await vscode.workspace.applyEdit(repairEdit), "could not repair the diagnostic fixture");
   await waitFor(() => vscode.languages.getDiagnostics(document.uri).length === 0 || undefined,
     "diagnostic clearing");
+
+  const incompleteDocument = await vscode.workspace.openTextDocument({
+    language: "sagan",
+    content: "fun incomplete(): Int {\n  return 0\n"
+  });
+  await vscode.window.showTextDocument(incompleteDocument);
+  const incompleteDiagnostics = await waitFor(
+    () => {
+      const diagnostics = vscode.languages.getDiagnostics(incompleteDocument.uri);
+      return diagnostics.length ? diagnostics : undefined;
+    },
+    "an incomplete-document diagnostic");
+  const quickFixes = await vscode.commands.executeCommand(
+    "vscode.executeCodeActionProvider", incompleteDocument.uri,
+    new vscode.Range(new vscode.Position(1, 0), new vscode.Position(1, 10)),
+    "quickfix", 10);
+  assert(quickFixes && quickFixes.some((action) => action.edit),
+    "code action provider did not return the compiler-issued incomplete-document quick fix");
+  assert(incompleteDiagnostics.length > 0,
+    "code action acceptance fixture unexpectedly had no compiler diagnostic");
+  await vscode.window.showTextDocument(document);
 
   const rename = await vscode.commands.executeCommand(
     "vscode.executeDocumentRenameProvider", document.uri, callPosition, "launch");
@@ -142,6 +195,10 @@ async function run() {
   const memberOwner = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(
     vscode.workspace.workspaceFolders[0].uri, "member_rename", "vehicle.sagan"));
   await vscode.window.showTextDocument(memberMain);
+  const documentLinks = await vscode.commands.executeCommand(
+    "_executeLinkProvider", memberMain.uri, 10);
+  assert(documentLinks && documentLinks.length > 0,
+    `document-link provider returned no module import links: ${JSON.stringify(documentLinks)}`);
   const memberPosition = new vscode.Position(4, memberMain.lineAt(4).text.indexOf("sample") + 1);
   const memberDefinitions = await waitFor(
     () => vscode.commands.executeCommand("vscode.executeDefinitionProvider", memberMain.uri, memberPosition)
@@ -222,6 +279,39 @@ async function run() {
   const privateFieldEdits = privateFieldRename.entries().flatMap(([, editsForDocument]) => editsForDocument);
   assert(privateFieldEdits.length === 4 && privateFieldEdits.every((edit) => edit.newText === "count"),
     "private field rename did not cover its declaration and every self reference");
+
+  const composition = await vscode.workspace.openTextDocument({
+    language: "sagan",
+    content: [
+      "face Readable { fun read(): Int }",
+      "class Probe has Readable { fun read(): Int => 1 }",
+      "fun inspect(): Int {",
+      "  let probe = Probe()",
+      "  return probe.read()",
+      "}",
+      ""
+    ].join("\n")
+  });
+  await vscode.window.showTextDocument(composition);
+  const implementations = await vscode.commands.executeCommand(
+    "vscode.executeImplementationProvider", composition.uri, new vscode.Position(0, 6));
+  assert(implementations && implementations.length === 1,
+    "implementation provider did not connect the face to its implementing class");
+  const typeDefinitions = await vscode.commands.executeCommand(
+    "vscode.executeTypeDefinitionProvider", composition.uri, new vscode.Position(4, 9));
+  assert(typeDefinitions && typeDefinitions.length === 1,
+    "type-definition provider did not resolve the inferred local binding type");
+  const typeItems = await vscode.commands.executeCommand(
+    "vscode.prepareTypeHierarchy", composition.uri, new vscode.Position(0, 6));
+  assert(typeItems && typeItems.length === 1,
+    "type hierarchy preparation did not resolve the face");
+  const subtypes = await vscode.commands.executeCommand("vscode.provideSubtypes", typeItems[0]);
+  assert(subtypes && subtypes.some((item) => item.name === "Probe"),
+    "type hierarchy did not expose the implementing Probe class");
+  const probeSubtype = subtypes.find((item) => item.name === "Probe");
+  const supertypes = await vscode.commands.executeCommand("vscode.provideSupertypes", probeSubtype);
+  assert(supertypes && supertypes.some((item) => item.name === "Readable"),
+    "type hierarchy did not preserve the Probe-to-Readable relationship");
 
   const aliasMain = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(
     vscode.workspace.workspaceFolders[0].uri, "alias_rename", "main.sagan"));
